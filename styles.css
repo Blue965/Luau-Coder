@@ -76,6 +76,7 @@ button { font: inherit; }
   background: rgba(167, 139, 250, .08);
   font-size: 13px;
 }
+.brand-mark img { width: 100%; height: 100%; display: block; }
 .main-nav { display: flex; align-items: center; gap: 38px; margin-left: 60px; }
 .main-nav a, .text-link { color: #b3b3be; font-size: 12px; transition: color .2s; }
 .main-nav a:hover, .text-link:hover { color: var(--text); }

@@ -21,7 +21,7 @@ button { color: inherit; }
 .app-shell { height: 100%; display: grid; grid-template-columns: 244px 1fr; }
 .sidebar { display: flex; flex-direction: column; padding: 20px 14px 14px; border-right: 1px solid var(--line); background: #0e0f14; }
 .app-brand { display: flex; align-items: center; gap: 9px; padding: 1px 5px; color: #f4f1fb; font-size: 14px; font-weight: 800; letter-spacing: -.6px; text-decoration: none; }
-.brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(167,139,250,.35); border-radius: 8px; background: rgba(167,139,250,.08); color: var(--purple); font: 12px "DM Mono",monospace; letter-spacing: -2px; }
+.app-logo { width: 33px; height: 33px; display: block; flex: 0 0 auto; }
 .brand-muted { color: #9795a1; font-weight: 500; }
 .new-chat { width: 100%; display: flex; align-items: center; gap: 10px; margin-top: 32px; padding: 11px 10px; border: 1px solid rgba(167,139,250,.22); border-radius: 6px; background: rgba(167,139,250,.08); color: #d8d0ed; text-align: left; font-size: 10px; cursor: pointer; }
 .new-chat:hover { background: rgba(167,139,250,.14); }
@@ -53,7 +53,8 @@ button { color: inherit; }
 .topbar-status { display: flex; align-items: center; gap: 7px; color: #797984; font: 8px "DM Mono",monospace; }
 .conversation { flex: 1; overflow: auto; padding: 24px 7vw 30px; }
 .welcome { width: min(620px, 100%); margin: 4vh auto 0; text-align: center; }
-.welcome-mark { width: 38px; height: 38px; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid rgba(167,139,250,.29); border-radius: 12px; background: rgba(167,139,250,.08); color: var(--purple); font-size: 18px; }
+.welcome-mark { width: 44px; height: 44px; display: grid; place-items: center; margin: 0 auto 16px; }
+.welcome-mark img { width: 100%; height: 100%; display: block; }
 .eyebrow { margin-bottom: 14px; color: var(--cyan); font: 8px "DM Mono",monospace; letter-spacing: 1.2px; }
 .welcome h1 { margin: 0 0 13px; font-size: clamp(30px, 3.4vw, 43px); line-height: 1.18; letter-spacing: -2px; }
 .welcome h1 span { color: var(--purple); }
@@ -77,6 +78,7 @@ button { color: inherit; }
 .user-bubble { width: fit-content; max-width: 80%; margin-left: auto; padding: 12px 14px; border: 1px solid rgba(167,139,250,.15); border-radius: 9px 9px 2px 9px; background: rgba(167,139,250,.08); color: #e4dff0; font-size: 10px; line-height: 1.8; white-space: pre-wrap; }
 .assistant-bubble { display: flex; gap: 10px; margin-top: 16px; color: #d4d1dc; font-size: 10px; line-height: 1.9; }
 .assistant-avatar { width: 23px; height: 23px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid rgba(167,139,250,.25); border-radius: 7px; color: var(--purple); }
+.assistant-avatar img { width: 100%; height: 100%; display: block; border-radius: inherit; }
 .assistant-text { min-width: 0; flex: 1; overflow-wrap: anywhere; }
 .assistant-text p { margin: 0 0 11px; }
 .assistant-text pre { overflow: auto; margin: 8px 0 10px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: #101116; color: #a9d4b4; font: 9px/1.7 "DM Mono",monospace; white-space: pre; }
@@ -86,11 +88,17 @@ button { color: inherit; }
 .toast { max-width: 760px; margin: 8px auto 0; color: #e5a2a2; font-size: 9px; }
 .modal-backdrop[hidden] { display: none; }
 .modal-backdrop { position: fixed; z-index: 4; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(2,3,6,.72); backdrop-filter: blur(7px); }
-.modal { width: min(450px, 100%); position: relative; padding: 27px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: #14151c; box-shadow: 0 30px 100px rgba(0,0,0,.5); }
+.modal { width: min(450px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; position: relative; padding: 27px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: #14151c; box-shadow: 0 30px 100px rgba(0,0,0,.5); }
 .modal-close { position: absolute; top: 14px; right: 16px; border: 0; background: transparent; color: #8b8996; font-size: 22px; cursor: pointer; }
 .modal h2 { margin: 0 0 10px; font-size: 21px; letter-spacing: -.7px; }
 .modal-copy { margin: 0 0 22px; color: var(--muted); font-size: 9px; line-height: 1.8; }
 .modal label { display: block; margin-bottom: 7px; color: #bbb9c5; font-size: 9px; }
+.modal form > label:not(:first-child), #base-url-field { margin-top: 13px; }
+.modal form > input, .modal form > select, #base-url-field input { width: 100%; height: 37px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; outline: 0; background: #0e0f14; color: #eeeaf6; font: 9px "DM Mono",monospace; }
+.modal form > input:focus, .modal form > select:focus, #base-url-field input:focus { border-color: rgba(167,139,250,.45); }
+.modal form > select { appearance: none; cursor: pointer; }
+#base-url-field[hidden] { display: none; }
+#key-saved-state { color: #85838f; font-size: 8px; font-weight: 400; }
 .key-input-row { display: flex; gap: 7px; }
 .key-input-row input { width: 100%; min-width: 0; height: 37px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; outline: 0; background: #0e0f14; color: #eeeaf6; font: 9px "DM Mono",monospace; }
 .key-input-row input:focus { border-color: rgba(167,139,250,.45); }
@@ -101,6 +109,8 @@ button { color: inherit; }
 .context-consent { display: flex !important; align-items: flex-start; gap: 9px; margin-top: 19px; padding: 11px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,.02); color: #aaa8b4 !important; line-height: 1.7; cursor: pointer; }
 .context-consent input { flex: 0 0 auto; accent-color: #a78bfa; }
 .model-note { margin-top: 22px; padding: 13px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,.02); }
+.model-note:has(p) { margin-top: 16px; }
+.model-note > p { color: #9e9ca8; font-size: 8px; line-height: 1.75; }
 .model-note > span, .bridge-address > span { display: block; margin-bottom: 7px; color: #767580; font: 7px "DM Mono",monospace; letter-spacing: .7px; }
 .model-note code { color: #d2c7f5; font: 9px "DM Mono",monospace; }
 .model-note p, .privacy-note { margin: 8px 0 0; color: #82818d; font-size: 8px; line-height: 1.7; }

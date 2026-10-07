@@ -8,6 +8,13 @@ const pairingModal = document.querySelector("#pairing-modal");
 const keyFeedback = document.querySelector("#key-feedback");
 const pairingFeedback = document.querySelector("#pairing-feedback");
 const contextConsent = document.querySelector("#include-context");
+const providerForm = document.querySelector("#provider-form");
+const providerSelect = document.querySelector("#provider-select");
+const modelInput = document.querySelector("#model-name");
+const baseUrlInput = document.querySelector("#base-url");
+const apiKeyInput = document.querySelector("#api-key");
+const providerHelp = document.querySelector("#provider-help");
+let providerSettings = {};
 let includeStudioContext = false;
 let studioState = null;
 
@@ -34,11 +41,11 @@ document.querySelectorAll(".modal-backdrop").forEach((modal) => {
 async function refreshSettings() {
   try {
     const settings = await window.luauCoder.getSettings();
-    const keyState = document.querySelector("#key-state");
-    keyState.textContent = settings.hasApiKey ? "Clé enregistrée" : "Clé requise";
-    keyState.classList.toggle("is-set", settings.hasApiKey);
+    providerSettings = settings.providers;
+    providerSelect.value = settings.provider;
     includeStudioContext = settings.includeStudioContext;
     contextConsent.checked = includeStudioContext;
+    showProviderSettings(settings.provider);
     if (studioState) renderStudioState(studioState);
   } catch (error) {
     keyFeedback.textContent = error.message;
@@ -46,17 +53,56 @@ async function refreshSettings() {
   }
 }
 
-document.querySelector("#key-form").addEventListener("submit", async (event) => {
+function showProviderSettings(providerId) {
+  const config = providerSettings[providerId];
+  if (!config) return;
+  modelInput.value = config.model;
+  baseUrlInput.value = config.baseUrl;
+  document.querySelector("#base-url-field").hidden = config.protocol === "anthropic";
+  document.querySelector("#key-saved-state").textContent = config.hasApiKey
+    ? "· Clé enregistrée — laisse vide pour la garder"
+    : "· Clé requise";
+  apiKeyInput.placeholder = config.hasApiKey
+    ? "Clé enregistrée — vide pour la garder"
+    : "Colle ta clé API";
+  if (config.helpUrl) {
+    providerHelp.href = config.helpUrl;
+    providerHelp.hidden = false;
+  } else {
+    providerHelp.hidden = true;
+  }
+  document.querySelector("#key-state").textContent = config.hasApiKey
+    ? config.label
+    : "Clé requise";
+  document.querySelector("#key-state").classList.toggle("is-set", config.hasApiKey);
+  document.querySelector("#active-model").textContent = `${config.label} · ${config.model || "modèle non défini"}`;
+}
+
+providerSelect.addEventListener("change", () => {
+  apiKeyInput.value = "";
+  keyFeedback.textContent = "";
+  showProviderSettings(providerSelect.value);
+});
+
+providerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const input = document.querySelector("#api-key");
+  const submitButton = providerForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
   keyFeedback.textContent = "Enregistrement sécurisé…";
   try {
-    await window.luauCoder.saveApiKey(input.value);
-    input.value = "";
-    keyFeedback.textContent = "Clé chiffrée et enregistrée sur cet ordinateur.";
+    await window.luauCoder.saveProviderSettings({
+      provider: providerSelect.value,
+      model: modelInput.value,
+      baseUrl: baseUrlInput.value,
+      apiKey: apiKeyInput.value,
+    });
+    apiKeyInput.value = "";
+    keyFeedback.textContent = "Fournisseur et modèle enregistrés. La clé est chiffrée sur cet ordinateur.";
     await refreshSettings();
   } catch (error) {
     keyFeedback.textContent = error.message;
+  } finally {
+    submitButton.disabled = false;
   }
 });
 
@@ -67,8 +113,8 @@ contextConsent.addEventListener("change", async () => {
     const result = await window.luauCoder.setStudioContext(requestedValue);
     includeStudioContext = result.includeStudioContext;
     keyFeedback.textContent = includeStudioContext
-      ? "Le script sélectionné sera transmis à OpenRouter avec tes prochaines demandes."
-      : "Le contenu du script ne sera pas transmis à OpenRouter.";
+      ? "Le script sélectionné sera transmis au fournisseur choisi."
+      : "Le contenu du script ne sera pas transmis au fournisseur IA.";
     if (studioState) renderStudioState(studioState);
   } catch (error) {
     contextConsent.checked = includeStudioContext;
@@ -94,7 +140,7 @@ function renderStudioState(state) {
     : "Studio hors ligne";
   document.querySelector("#context-hint").textContent = hasContext
     ? includeStudioContext
-      ? `Contexte envoyé à OpenRouter : ${state.context.path}`
+      ? `Contexte envoyé à l’IA : ${state.context.path}`
       : `Script local (partage IA désactivé) : ${state.context.path}`
     : connected
       ? "Plugin connecté · sélectionne un script"
@@ -138,7 +184,10 @@ function addAssistantMessage(turn, response) {
   bubble.className = "assistant-bubble";
   const avatar = document.createElement("span");
   avatar.className = "assistant-avatar";
-  avatar.textContent = "✳";
+  const avatarLogo = document.createElement("img");
+  avatarLogo.src = "logo.svg";
+  avatarLogo.alt = "";
+  avatar.append(avatarLogo);
   const content = document.createElement("div");
   content.className = "assistant-text";
 

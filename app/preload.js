@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("luauCoder", {
   getSettings: () => ipcRenderer.invoke("settings:get"),
-  saveApiKey: (key) => ipcRenderer.invoke("settings:setApiKey", key),
+  saveProviderSettings: (settings) => ipcRenderer.invoke("settings:saveProvider", settings),
   setStudioContext: (enabled) => ipcRenderer.invoke("settings:setStudioContext", enabled),
   sendMessage: (prompt) => ipcRenderer.invoke("assistant:send", prompt),
   getStudioState: () => ipcRenderer.invoke("studio:getState"),

@@ -2,12 +2,13 @@
   "name": "luau-coder",
   "version": "0.1.0",
   "private": true,
+  "author": "Blue965",
   "description": "Luau Coder desktop app and Roblox Studio companion plugin",
   "main": "app/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis",
-    "check": "node --check app/main.js && node --check app/preload.js && node --check app/renderer/app.js"
+    "dist": "electron-builder --win nsis --config.directories.output=dist",
+    "check": "node --check app/main.js && node --check app/preload.js && node --check app/provider-api.js && node --check app/renderer/app.js && node --test test/*.test.js"
   },
   "devDependencies": {
     "electron": "^44.6.0",
@@ -25,6 +26,7 @@
     ],
     "artifactName": "Luau-Coder-Setup-${version}.${ext}",
     "win": {
+      "icon": "app/renderer/logo.ico",
       "target": "nsis"
     },
     "nsis": {

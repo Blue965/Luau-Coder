@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0c10" />
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
     <title>Luau Coder</title>
     <link rel="stylesheet" href="app.css" />
     <script src="app.js" defer></script>
@@ -11,8 +12,8 @@
   <body>
     <div class="app-shell">
       <aside class="sidebar">
-        <a class="app-brand" href="#" aria-label="Luau Coder">
-          <span class="brand-mark">&lt;/&gt;</span><span>luau<span class="brand-muted">coder</span></span>
+        <a class="app-brand" aria-label="Luau Coder">
+          <img class="app-logo" src="logo.svg" alt="" /><span>luau<span class="brand-muted">coder</span></span>
         </a>
         <button class="new-chat" id="new-chat" type="button"><span>＋</span> Nouvelle discussion</button>
         <div class="sidebar-label">ESPACE DE TRAVAIL</div>
@@ -35,7 +36,7 @@
         </header>
         <section class="conversation" id="conversation" aria-live="polite">
           <div class="welcome" id="welcome">
-            <div class="welcome-mark">✳</div>
+            <div class="welcome-mark"><img src="logo.svg" alt="" /></div>
             <p class="eyebrow">TON ASSISTANT LUAU</p>
             <h1>Qu’est-ce qu’on<br /><span>construit aujourd’hui ?</span></h1>
             <p class="welcome-copy">Demande une explication, explore une idée ou prépare du code pour Roblox Studio.</p>
@@ -47,12 +48,12 @@
           </div>
         </section>
         <div class="composer-wrap">
-          <div class="composer-hint"><span id="context-hint">Contexte Studio non connecté</span><span>OpenRouter · Modèles gratuits</span></div>
+          <div class="composer-hint"><span id="context-hint">Contexte Studio non connecté</span><span id="active-model">OpenRouter · openrouter/free</span></div>
           <form class="composer" id="chat-form">
             <textarea id="prompt-input" rows="1" maxlength="10000" placeholder="Demande à Luau Coder…" aria-label="Message à envoyer"></textarea>
             <div class="composer-actions"><span>Vérifie le code généré avant de l’utiliser.</span><button id="send-button" type="submit" aria-label="Envoyer" title="Envoyer">↑</button></div>
           </form>
-          <div class="app-disclaimer">Les modèles gratuits peuvent être limités ou indisponibles. L’IA peut se tromper : teste ton code dans Studio.</div>
+          <div class="app-disclaimer">L’utilisation dépend des tarifs et limites du fournisseur choisi. L’IA peut se tromper : teste ton code dans Studio.</div>
         </div>
       </main>
     </div>
@@ -60,17 +61,30 @@
     <div class="modal-backdrop" id="settings-modal" hidden>
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <button class="modal-close" type="button" data-close-modal aria-label="Fermer">×</button>
-        <p class="eyebrow">CONFIGURATION LOCALE</p>
-        <h2 id="settings-title">Connexion OpenRouter</h2>
-        <p class="modal-copy">Ta clé est chiffrée par le stockage sécurisé de Windows et n’est jamais transmise au plugin. Le plugin transmet le script sélectionné à l’app locale ; son envoi à OpenRouter est désactivé tant que tu ne coches pas l’option ci-dessous.</p>
-        <form id="key-form">
-          <label for="api-key">Clé API OpenRouter</label>
-          <div class="key-input-row"><input id="api-key" type="password" autocomplete="off" placeholder="sk-or-v1-…" required /><button type="submit">Enregistrer</button></div>
+        <p class="eyebrow">FOURNISSEUR IA PERSONNEL</p>
+        <h2 id="settings-title">Configure ton API</h2>
+        <p class="modal-copy">Choisis ton fournisseur, ton modèle et colle ta clé API. Elle est chiffrée avec Windows et n’est jamais envoyée au plugin ni stockée dans un fichier .env.</p>
+        <form id="provider-form">
+          <label for="provider-select">Fournisseur ou routeur</label>
+          <select id="provider-select">
+            <option value="openrouter">OpenRouter</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic Claude</option>
+            <option value="custom">API personnalisée compatible OpenAI</option>
+          </select>
+          <label for="model-name">Identifiant du modèle</label>
+          <input id="model-name" type="text" autocomplete="off" maxlength="200" placeholder="ex. provider/model-id" required />
+          <div id="base-url-field">
+            <label for="base-url">URL de base de l’API</label>
+            <input id="base-url" type="url" autocomplete="url" maxlength="500" />
+          </div>
+          <label for="api-key">Clé API <span id="key-saved-state"></span></label>
+          <div class="key-input-row"><input id="api-key" type="password" autocomplete="new-password" maxlength="2000" placeholder="Colle ta clé API" /><button type="submit">Enregistrer</button></div>
         </form>
         <p class="modal-feedback" id="key-feedback" role="status"></p>
-        <a class="modal-link" href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">Créer une clé OpenRouter <span>↗</span></a>
-        <label class="context-consent"><input id="include-context" type="checkbox" /> Joindre le script sélectionné aux demandes (son contenu sera envoyé à OpenRouter). Désactivé par défaut.</label>
-        <div class="model-note"><span>MODÈLE GRATUIT</span><code>openrouter/free</code><p>OpenRouter choisit un modèle gratuit disponible. Les modèles et limites peuvent changer.</p></div>
+        <a class="modal-link" id="provider-help" href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">Gérer les clés API <span>↗</span></a>
+        <label class="context-consent"><input id="include-context" type="checkbox" /> Joindre le script sélectionné à la demande (le contenu sera envoyé à ton fournisseur IA). Désactivé par défaut.</label>
+        <div class="model-note"><span>FORMAT COMPATIBLE</span><p>OpenAI et OpenRouter sont intégrés. Claude utilise l’API Anthropic. Les autres routeurs et fournisseurs doivent exposer une API compatible OpenAI.</p></div>
       </section>
     </div>
 
