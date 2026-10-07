@@ -245,7 +245,16 @@ local function pollApplication()
 		if response.StatusCode == 401 then
 			setStatus("Code invalide. Colle le code actuel de l’application.", Color3.fromRGB(226, 164, 136))
 		else
-			setStatus("Connexion locale refusée (HTTP " .. tostring(response.StatusCode) .. ").", Color3.fromRGB(226, 164, 136))
+			local detail = ""
+			if response.StatusCode == 400 then
+				local decodedOk, payload = pcall(function()
+					return HttpService:JSONDecode(response.Body)
+				end)
+				if decodedOk and typeof(payload) == "table" and typeof(payload.error) == "string" then
+					detail = ": " .. string.sub(payload.error, 1, 100)
+				end
+			end
+			setStatus("Connexion locale refusée (HTTP " .. tostring(response.StatusCode) .. ")" .. detail .. ".", Color3.fromRGB(226, 164, 136))
 		end
 		requestInProgress = false
 		return
