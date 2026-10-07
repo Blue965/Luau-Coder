@@ -220,6 +220,7 @@ local function pollApplication()
 	end
 
 	local body = HttpService:JSONEncode({
+		protocolVersion = 1,
 		script = scriptContext,
 		acknowledgedId = acknowledgedId,
 		completedId = completedId,
