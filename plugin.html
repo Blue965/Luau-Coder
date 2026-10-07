@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Connecte Roblox Studio à Luau Coder avec le plugin local." />
+    <meta name="theme-color" content="#0b0c10" />
+    <title>Plugin Roblox Studio — Luau Coder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body class="subpage">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Luau Coder, accueil"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>luau<span class="brand-light">coder</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span></button>
+      <nav class="main-nav" id="primary-navigation" aria-label="Navigation principale">
+        <a href="features.html">Fonctionnalités</a><a href="plugin.html" aria-current="page">Plugin Studio</a><a href="download.html">Téléchargement</a>
+      </nav>
+      <a class="button button-small button-outline header-cta" href="download.html">Télécharger <span aria-hidden="true">↗</span></a>
+    </header>
+    <main>
+      <section class="page-hero section-wrap">
+        <p class="eyebrow">APPLICATION ↔ PLUGIN LOCAL</p>
+        <h1>Studio connecté.<br /><span>À ta demande.</span></h1>
+        <p class="page-lead">Le plugin échange uniquement avec l’application Luau Coder sur ton ordinateur. Il transmet le script sélectionné à l’app locale ; son partage avec OpenRouter reste désactivé tant que tu ne l’actives pas dans les paramètres.</p>
+      </section>
+      <section class="connection-flow section-wrap">
+        <article><span>01</span><h2>Lance l’app</h2><p>Luau Coder ouvre un service local accessible uniquement depuis ton PC et affiche un code d’association.</p></article>
+        <i aria-hidden="true">→</i>
+        <article><span>02</span><h2>Associe Studio</h2><p>Ouvre le plugin Luau Coder dans Studio et saisis le code affiché par l’application.</p></article>
+        <i aria-hidden="true">→</i>
+        <article><span>03</span><h2>Choisis un script</h2><p>Sélectionne un Script, LocalScript ou ModuleScript. Le plugin partage son contenu avec le chat.</p></article>
+      </section>
+      <section class="plugin-safety section-wrap">
+        <div><p class="eyebrow">SÉCURITÉ ET CONFIRMATION</p><h2>Aucune modification<br /><span>en douce.</span></h2><p>Le plugin ne remplace le contenu d’un script qu’après confirmation explicite dans Roblox Studio. Vérifie toujours la suggestion générée par l’IA avant de l’appliquer.</p></div>
+        <div class="safety-panel"><div class="safety-top"><span class="status-dot"></span> DEMANDE D’APPLICATION</div><strong>Remplacer le script sélectionné ?</strong><span>ServerScriptService / MainScript</span><div class="safety-actions"><span>Annuler</span><b>Confirmer le remplacement</b></div></div>
+      </section>
+      <section class="page-callout section-wrap">
+        <div><p class="eyebrow">CODE SOURCE DU PLUGIN</p><h2>Prêt à être installé<br /><span>dans Studio.</span></h2></div>
+        <a class="button button-primary" href="plugin/LuauCoderPlugin.lua" download>Télécharger le fichier Lua <span aria-hidden="true">↓</span></a>
+      </section>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="index.html" aria-label="Luau Coder, accueil"><span class="brand-mark" aria-hidden="true">&lt;/&gt;</span><span>luau<span class="brand-light">coder</span></span></a><span class="footer-tagline">Une idée à la fois. Un script à la fois.</span><span class="footer-copy">© 2026 LUAU CODER <span>·</span> PROJET INDÉPENDANT</span></footer>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0c10" />
+    <title>Luau Coder</title>
+    <link rel="stylesheet" href="app.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="app-brand" href="#" aria-label="Luau Coder">
+          <span class="brand-mark">&lt;/&gt;</span><span>luau<span class="brand-muted">coder</span></span>
+        </a>
+        <button class="new-chat" id="new-chat" type="button"><span>＋</span> Nouvelle discussion</button>
+        <div class="sidebar-label">ESPACE DE TRAVAIL</div>
+        <div class="workspace-item"><span class="workspace-icon">◇</span><span id="script-name">Aucun script sélectionné</span></div>
+        <div class="sidebar-bottom">
+          <div class="connection-card">
+            <div class="connection-title"><span class="connection-indicator" id="connection-indicator"></span> ROBLOX STUDIO</div>
+            <p id="connection-copy">Plugin non connecté</p>
+            <button class="subtle-button" type="button" id="show-pairing">Associer le plugin <span>↗</span></button>
+          </div>
+          <button class="settings-link" type="button" id="open-settings"><span>⚙</span> Paramètres IA <span class="settings-state" id="key-state">Clé requise</span></button>
+          <div class="sidebar-version">LUAU CODER <span>0.1.0</span></div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="breadcrumbs">ESPACE DE TRAVAIL <span>/</span> <strong>Assistant</strong></div>
+          <div class="topbar-status"><i></i> <span id="topbar-connection">Studio hors ligne</span></div>
+        </header>
+        <section class="conversation" id="conversation" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <div class="welcome-mark">✳</div>
+            <p class="eyebrow">TON ASSISTANT LUAU</p>
+            <h1>Qu’est-ce qu’on<br /><span>construit aujourd’hui ?</span></h1>
+            <p class="welcome-copy">Demande une explication, explore une idée ou prépare du code pour Roblox Studio.</p>
+            <div class="prompt-suggestions">
+              <button type="button" data-prompt="Explique-moi comment fonctionne un ModuleScript dans Roblox."><span>⌘</span> Explique les ModuleScripts</button>
+              <button type="button" data-prompt="Montre-moi un exemple simple d’un système de pièces en Luau pour Roblox."><span>{ }</span> Exemple de système de pièces</button>
+              <button type="button" data-prompt="Aide-moi à déboguer mon script Luau sélectionné dans Studio."><span>⌕</span> Déboguer mon script sélectionné</button>
+            </div>
+          </div>
+        </section>
+        <div class="composer-wrap">
+          <div class="composer-hint"><span id="context-hint">Contexte Studio non connecté</span><span>OpenRouter · Modèles gratuits</span></div>
+          <form class="composer" id="chat-form">
+            <textarea id="prompt-input" rows="1" maxlength="10000" placeholder="Demande à Luau Coder…" aria-label="Message à envoyer"></textarea>
+            <div class="composer-actions"><span>Vérifie le code généré avant de l’utiliser.</span><button id="send-button" type="submit" aria-label="Envoyer" title="Envoyer">↑</button></div>
+          </form>
+          <div class="app-disclaimer">Les modèles gratuits peuvent être limités ou indisponibles. L’IA peut se tromper : teste ton code dans Studio.</div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="settings-modal" hidden>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <button class="modal-close" type="button" data-close-modal aria-label="Fermer">×</button>
+        <p class="eyebrow">CONFIGURATION LOCALE</p>
+        <h2 id="settings-title">Connexion OpenRouter</h2>
+        <p class="modal-copy">Ta clé est chiffrée par le stockage sécurisé de Windows et n’est jamais transmise au plugin. Le plugin transmet le script sélectionné à l’app locale ; son envoi à OpenRouter est désactivé tant que tu ne coches pas l’option ci-dessous.</p>
+        <form id="key-form">
+          <label for="api-key">Clé API OpenRouter</label>
+          <div class="key-input-row"><input id="api-key" type="password" autocomplete="off" placeholder="sk-or-v1-…" required /><button type="submit">Enregistrer</button></div>
+        </form>
+        <p class="modal-feedback" id="key-feedback" role="status"></p>
+        <a class="modal-link" href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">Créer une clé OpenRouter <span>↗</span></a>
+        <label class="context-consent"><input id="include-context" type="checkbox" /> Joindre le script sélectionné aux demandes (son contenu sera envoyé à OpenRouter). Désactivé par défaut.</label>
+        <div class="model-note"><span>MODÈLE GRATUIT</span><code>openrouter/free</code><p>OpenRouter choisit un modèle gratuit disponible. Les modèles et limites peuvent changer.</p></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="pairing-modal" hidden>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="pairing-title">
+        <button class="modal-close" type="button" data-close-modal aria-label="Fermer">×</button>
+        <p class="eyebrow">PONT LOCAL AUTHENTIFIÉ</p>
+        <h2 id="pairing-title">Associer Roblox Studio</h2>
+        <p class="modal-copy">Dans le plugin Luau Coder, colle ce code d’association. Il est renouvelé à chaque démarrage de l’application.</p>
+        <div class="pairing-token"><code id="pairing-token">Chargement…</code><button type="button" id="copy-token">Copier</button></div>
+        <div class="bridge-address"><span>ADRESSE LOCALE</span><code>127.0.0.1:37842</code></div>
+        <p class="modal-feedback" id="pairing-feedback" role="status"></p>
+        <p class="privacy-note">La connexion reste sur cet ordinateur. Ne partage pas le code d’association. Le plugin ne modifie aucun script sans ta confirmation dans Studio.</p>
+      </section>
+    </div>
+  </body>
+</html>
