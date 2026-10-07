@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, safeStorage } = require("electron");
+const { app, BrowserWindow, clipboard, ipcMain, safeStorage } = require("electron");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -8,6 +8,7 @@ const {
   extractAssistantText,
   getProviderConfig,
   getRequestForProvider,
+  validateConversation,
   validateProviderConfig,
 } = require("./provider-api");
 
@@ -22,6 +23,7 @@ let mainWindow;
 let bridgeServer;
 let lastPluginContext = null;
 let lastPluginSeenAt = 0;
+let pluginDisconnectTimer;
 let pendingApply = null;
 let includeStudioContext = false;
 let settings = {
@@ -142,6 +144,15 @@ function notifyRenderer() {
   }
 }
 
+function schedulePluginDisconnectNotification() {
+  clearTimeout(pluginDisconnectTimer);
+  const observedAt = lastPluginSeenAt;
+  pluginDisconnectTimer = setTimeout(() => {
+    if (lastPluginSeenAt === observedAt) notifyRenderer();
+  }, 8_100);
+  pluginDisconnectTimer.unref();
+}
+
 function validatePluginContext(body) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     throw new Error("Le contexte du plugin est invalide.");
@@ -184,17 +195,29 @@ async function handlePluginPoll(request, response) {
 
   const body = await readJson(request);
   const nextContext = validatePluginContext(body);
-  if (typeof body.acknowledgedId === "string" && pendingApply?.id === body.acknowledgedId) {
+  if (typeof body.completedId === "string" && pendingApply?.id === body.completedId) {
     pendingApply = null;
+  }
+  if (typeof body.acknowledgedId === "string" && pendingApply?.id === body.acknowledgedId) {
+    pendingApply.acknowledged = true;
   }
 
   lastPluginContext = nextContext;
   lastPluginSeenAt = Date.now();
   notifyRenderer();
+  schedulePluginDisconnectNotification();
 
   sendJson(response, 200, {
     connected: true,
-    operation: pendingApply,
+    operation: pendingApply && !pendingApply.acknowledged
+      ? {
+          id: pendingApply.id,
+          targetPath: pendingApply.targetPath,
+          targetName: pendingApply.targetName,
+          targetClass: pendingApply.targetClass,
+          code: pendingApply.code,
+        }
+      : null,
   });
 }
 
@@ -230,18 +253,18 @@ function getContextForPrompt() {
   return lastPluginContext;
 }
 
-function getUserContent(prompt, context) {
-  if (!context) return prompt.trim();
-  return `Script sélectionné dans Roblox Studio : ${context.path} (${context.className})\n\n\`\`\`lua\n${context.source}\n\`\`\`\n\nDemande :\n${prompt.trim()}`;
+function getConversationForRequest(messages, context) {
+  const conversation = messages.map((message) => ({ ...message }));
+  if (!context) return conversation;
+
+  const lastMessage = conversation.at(-1);
+  lastMessage.content =
+    `Script sélectionné dans Roblox Studio : ${context.path} (${context.className})\n\n\`\`\`lua\n${context.source}\n\`\`\`\n\nDemande :\n${lastMessage.content}`;
+  return conversation;
 }
 
-async function requestAssistantReply(prompt) {
-  if (typeof prompt !== "string" || prompt.trim().length === 0) {
-    throw new Error("Écris une demande avant de l’envoyer.");
-  }
-  if (prompt.length > 10_000) {
-    throw new Error("Ta demande dépasse la limite de 10 000 caractères.");
-  }
+async function requestAssistantReply(messages, { includeContext = true } = {}) {
+  const conversation = validateConversation(messages);
 
   const providerId = settings.provider;
   const provider = PROVIDERS[providerId];
@@ -252,8 +275,13 @@ async function requestAssistantReply(prompt) {
     throw new Error(`Ajoute ta clé API ${provider.label} dans les paramètres.`);
   }
 
-  const context = includeStudioContext ? getContextForPrompt() : null;
-  const request = getRequestForProvider(providerId, config, apiKey, getUserContent(prompt, context));
+  const context = includeContext && includeStudioContext ? getContextForPrompt() : null;
+  const request = getRequestForProvider(
+    providerId,
+    config,
+    apiKey,
+    getConversationForRequest(conversation, context),
+  );
   const result = await fetch(request.endpoint, {
     method: "POST",
     headers: request.headers,
@@ -284,6 +312,14 @@ async function requestAssistantReply(prompt) {
   return { content, model: payload.model || config.model, provider: provider.label };
 }
 
+async function testProviderConnection() {
+  const response = await requestAssistantReply(
+    [{ role: "user", content: "Réponds uniquement par : Luau Coder OK" }],
+    { includeContext: false },
+  );
+  return { provider: response.provider, model: response.model };
+}
+
 function queueCodeForStudio(code) {
   if (typeof code !== "string" || code.trim().length === 0) {
     throw new Error("Le bloc de code à envoyer est vide.");
@@ -301,6 +337,7 @@ function queueCodeForStudio(code) {
     targetName: context.name,
     targetClass: context.className,
     code,
+    acknowledged: false,
   };
   pendingApply = operation;
   notifyRenderer();
@@ -357,9 +394,16 @@ ipcMain.handle("settings:setStudioContext", (_event, enabled) => {
   saveSettings();
   return { includeStudioContext };
 });
-ipcMain.handle("assistant:send", (_event, prompt) => requestAssistantReply(prompt));
+ipcMain.handle("assistant:send", (_event, messages) => requestAssistantReply(messages));
+ipcMain.handle("provider:test", () => testProviderConnection());
 ipcMain.handle("studio:getState", () => publicPluginState());
 ipcMain.handle("studio:applyCode", (_event, code) => queueCodeForStudio(code));
+ipcMain.handle("clipboard:writeText", (_event, text) => {
+  if (typeof text !== "string" || text.length > MAX_APPLY_LENGTH) {
+    throw new Error("Le texte à copier est invalide ou trop long.");
+  }
+  clipboard.writeText(text);
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({

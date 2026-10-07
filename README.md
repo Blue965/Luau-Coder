@@ -8,12 +8,13 @@ Luau Coder is a Windows desktop assistant for Roblox Studio. The repository cont
 2. From this folder, run `npm install`.
 3. Run `npm start`.
 4. In the app, open **Paramètres IA**, choose a provider, enter its API key and model, and save. The key is encrypted with Windows secure storage.
-5. Open **Plugin Studio** in the app and copy the pairing code.
+5. Open **Associer le plugin** in the app and copy the pairing code.
 6. Install `plugin/LuauCoderPlugin.lua` as a local Roblox Studio plugin, paste the pairing code in its dock widget, and select a Script, LocalScript, or ModuleScript.
+7. Use **Tester la connexion** in provider settings to check the selected API key and model. Chat follow-ups keep the recent conversation in context; **Nouvelle discussion** clears it.
 
 Choose OpenRouter, OpenAI, Anthropic Claude, or a custom OpenAI-compatible endpoint and model in **Paramètres IA**. API keys are encrypted with Windows secure storage; provider settings are kept in the app's local user-data directory, not in a `.env` file. The OpenRouter preset uses `openrouter/free`; free-model availability and rate limits are controlled by OpenRouter. Anthropic uses its native Messages API. Custom providers must implement the OpenAI-compatible chat completions API. Users pay for API usage according to their provider and model.
 
-The local bridge binds only to `127.0.0.1:37842` and requires a random pairing code generated at each app launch. The plugin sends the selected script's source to the local app. Forwarding that source to the selected AI provider is opt-in and disabled by default in the app settings. A code suggestion is not written to Studio unless you explicitly confirm the replacement in the plugin. Review generated code before using it.
+The local bridge binds only to `127.0.0.1:37842` and requires a random pairing code generated at each app launch. The plugin sends the selected script's source to the local app. Forwarding that source to the selected AI provider is opt-in and disabled by default in the app settings. Generated code can be copied or queued for Studio; a queued suggestion is not written to Studio unless you explicitly confirm the replacement in the plugin. Review generated code before using it.
 
 ## Build the Windows installer
 

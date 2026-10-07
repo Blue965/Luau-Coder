@@ -6,6 +6,7 @@ const {
   getApiEndpoint,
   getProviderConfig,
   getRequestForProvider,
+  validateConversation,
   validateProviderConfig,
 } = require("../app/provider-api");
 
@@ -82,6 +83,49 @@ test("OpenAI-compatible requests include the selected model and bearer key", () 
   assert.equal(request.endpoint, "https://api.openai.com/v1/chat/completions");
   assert.equal(request.headers.Authorization, "Bearer openai-secret");
   assert.equal(request.body.model, "gpt-test");
+});
+
+test("provider requests preserve valid user and assistant conversation history", () => {
+  const conversation = [
+    { role: "user", content: "Comment fonctionne un ModuleScript ?" },
+    { role: "assistant", content: "Il permet de partager un module." },
+    { role: "user", content: "Montre un exemple." },
+  ];
+
+  const openAIRequest = getRequestForProvider(
+    "openai",
+    { model: "gpt-test", baseUrl: "https://api.openai.com/v1" },
+    "openai-secret",
+    conversation,
+  );
+  const anthropicRequest = getRequestForProvider(
+    "anthropic",
+    { model: "claude-test", baseUrl: "https://api.anthropic.com" },
+    "anthropic-secret",
+    conversation,
+  );
+
+  assert.deepEqual(openAIRequest.body.messages.slice(1), conversation);
+  assert.deepEqual(anthropicRequest.body.messages, conversation);
+});
+
+test("conversation validation rejects malformed, oversized, and unfinished histories", () => {
+  assert.throws(() => validateConversation([]), /conversation est vide ou trop longue/);
+  assert.throws(
+    () => validateConversation([{ role: "assistant", content: "Salut" }]),
+    /format de la conversation est invalide/,
+  );
+  assert.throws(
+    () => validateConversation([
+      { role: "user", content: "Salut" },
+      { role: "assistant", content: "Bonjour" },
+    ]),
+    /doit se terminer par un message utilisateur/,
+  );
+  assert.throws(
+    () => validateConversation([{ role: "user", content: "a".repeat(60_001) }]),
+    /dépasse 60 000 caractères/,
+  );
 });
 
 test("assistant response parsing handles Anthropic and OpenAI text formats", () => {

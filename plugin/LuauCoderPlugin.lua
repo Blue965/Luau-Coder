@@ -148,6 +148,7 @@ end
 
 local currentToken = ""
 local acknowledgedId = nil
+local completedId = nil
 local currentOperation = nil
 local currentTarget = nil
 local running = true
@@ -221,6 +222,7 @@ local function pollApplication()
 	local body = HttpService:JSONEncode({
 		script = scriptContext,
 		acknowledgedId = acknowledgedId,
+		completedId = completedId,
 	})
 	local ok, responseOrError = pcall(function()
 		return HttpService:RequestAsync({
@@ -272,6 +274,9 @@ local function pollApplication()
 	setStatus(contextError or "Connecté à Luau Coder.", contextError and Color3.fromRGB(226, 164, 136) or Color3.fromRGB(112, 230, 211))
 	if acknowledgedId then
 		acknowledgedId = nil
+	end
+	if completedId then
+		completedId = nil
 	end
 
 	local operation = payload.operation
@@ -331,11 +336,15 @@ applyButton.Activated:Connect(function()
 		return
 	end
 
+	completedId = currentOperation.id
 	clearOperation("Code appliqué à " .. currentTarget.Name .. ". Tu peux annuler avec Ctrl+Z dans Studio.")
 	setStatus("Script mis à jour.", Color3.fromRGB(112, 230, 211))
 end)
 
 cancelButton.Activated:Connect(function()
+	if currentOperation then
+		completedId = currentOperation.id
+	end
 	clearOperation("Suggestion annulée. Le script n’a pas été modifié.")
 end)
 

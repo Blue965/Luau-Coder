@@ -35,6 +35,7 @@ button { color: inherit; }
 .connection-title { display: flex; align-items: center; gap: 7px; color: #aaa9b4; font: 8px "DM Mono",monospace; letter-spacing: .8px; }
 .connection-indicator, .topbar-status i { width: 6px; height: 6px; border-radius: 50%; background: #656570; }
 .connection-indicator.is-online, .topbar-status.is-online i { background: var(--cyan); box-shadow: 0 0 9px rgba(112,230,211,.5); }
+.connection-indicator.is-pending { background: #e7bd76; box-shadow: 0 0 9px rgba(231,189,118,.4); }
 .connection-card p { margin: 9px 0; color: #777783; font-size: 9px; }
 .subtle-button { padding: 0; border: 0; background: none; color: #bbb3ce; font-size: 9px; cursor: pointer; }
 .subtle-button span { color: var(--purple); margin-left: 4px; }
@@ -82,8 +83,12 @@ button { color: inherit; }
 .assistant-text { min-width: 0; flex: 1; overflow-wrap: anywhere; }
 .assistant-text p { margin: 0 0 11px; }
 .assistant-text pre { overflow: auto; margin: 8px 0 10px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: #101116; color: #a9d4b4; font: 9px/1.7 "DM Mono",monospace; white-space: pre; }
-.apply-code { margin: 0 0 6px 33px; padding: 7px 10px; border: 1px solid rgba(167,139,250,.25); border-radius: 5px; background: rgba(167,139,250,.1); color: #d7c9fb; font-size: 8px; cursor: pointer; }
+.code-actions { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 6px 33px; }
+.apply-code, .copy-code { padding: 7px 10px; border: 1px solid rgba(167,139,250,.25); border-radius: 5px; background: rgba(167,139,250,.1); color: #d7c9fb; font-size: 8px; cursor: pointer; }
 .apply-code:hover { background: rgba(167,139,250,.18); }
+.copy-code { border-color: var(--line); background: rgba(255,255,255,.03); color: #aaa8b4; }
+.copy-code:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
+.apply-code:disabled, .copy-code:disabled { opacity: .55; cursor: default; }
 .response-model { margin: 6px 0 0 33px; color: #686875; font: 7px "DM Mono",monospace; }
 .toast { max-width: 760px; margin: 8px auto 0; color: #e5a2a2; font-size: 9px; }
 .modal-backdrop[hidden] { display: none; }
@@ -103,6 +108,9 @@ button { color: inherit; }
 .key-input-row input { width: 100%; min-width: 0; height: 37px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; outline: 0; background: #0e0f14; color: #eeeaf6; font: 9px "DM Mono",monospace; }
 .key-input-row input:focus { border-color: rgba(167,139,250,.45); }
 .key-input-row button, .pairing-token button { padding: 0 12px; border: 0; border-radius: 5px; background: var(--purple); color: #191622; font-size: 9px; font-weight: 700; cursor: pointer; }
+.test-provider { width: 100%; min-height: 34px; margin-top: 8px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255,255,255,.035); color: #c5c2cf; font-size: 9px; cursor: pointer; }
+.test-provider:hover { border-color: rgba(112,230,211,.35); color: var(--cyan); }
+.test-provider:disabled { opacity: .55; cursor: wait; }
 .modal-feedback { min-height: 13px; margin: 8px 0 0; color: var(--cyan); font-size: 8px; }
 .modal-link { display: inline-block; margin-top: 6px; color: #c5b8e5; font-size: 9px; }
 .modal-link span { color: var(--purple); }

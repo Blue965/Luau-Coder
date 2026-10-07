@@ -17,6 +17,8 @@ const providerHelp = document.querySelector("#provider-help");
 let providerSettings = {};
 let includeStudioContext = false;
 let studioState = null;
+let conversationHistory = [];
+let activeProvider = null;
 
 function showModal(modal) {
   modal.hidden = false;
@@ -43,6 +45,11 @@ async function refreshSettings() {
     const settings = await window.luauCoder.getSettings();
     providerSettings = settings.providers;
     providerSelect.value = settings.provider;
+    if (activeProvider && activeProvider !== settings.provider && conversationHistory.length) {
+      conversationHistory = [];
+      keyFeedback.textContent = "Fournisseur changé : l’historique de cette discussion ne sera pas partagé.";
+    }
+    activeProvider = settings.provider;
     includeStudioContext = settings.includeStudioContext;
     contextConsent.checked = includeStudioContext;
     showProviderSettings(settings.provider);
@@ -128,16 +135,24 @@ function renderStudioState(state) {
   studioState = state;
   const connected = state.connected;
   const hasContext = connected && state.context;
-  document.querySelector("#connection-indicator").classList.toggle("is-online", Boolean(connected));
-  document.querySelector(".topbar-status").classList.toggle("is-online", Boolean(connected));
-  document.querySelector("#connection-copy").textContent = hasContext
-    ? `Connecté · ${state.context.className}`
+  const pendingApply = Boolean(state.pendingApply);
+  document.querySelector("#connection-indicator").classList.toggle("is-online", Boolean(connected && !pendingApply));
+  document.querySelector("#connection-indicator").classList.toggle("is-pending", pendingApply);
+  document.querySelector(".topbar-status").classList.toggle("is-online", Boolean(connected && !pendingApply));
+  document.querySelector("#connection-copy").textContent = pendingApply
+    ? connected
+      ? "Code prêt · confirme dans Studio"
+      : "Code en attente · ouvre Studio"
+    : hasContext
+      ? `Connecté · ${state.context.className}`
+      : connected
+        ? "Connecté · sélectionne un script"
+        : "Plugin non connecté";
+  document.querySelector("#topbar-connection").textContent = pendingApply
+    ? "Confirmation attendue"
     : connected
-      ? "Connecté · sélectionne un script"
-    : "Plugin non connecté";
-  document.querySelector("#topbar-connection").textContent = connected
-    ? "Studio connecté"
-    : "Studio hors ligne";
+      ? "Studio connecté"
+      : "Studio hors ligne";
   document.querySelector("#context-hint").textContent = hasContext
     ? includeStudioContext
       ? `Contexte envoyé à l’IA : ${state.context.path}`
@@ -161,10 +176,26 @@ window.luauCoder.getStudioState().then(renderStudioState).catch((error) => {
 
 document.querySelector("#copy-token").addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(document.querySelector("#pairing-token").textContent);
+    await window.luauCoder.copyText(document.querySelector("#pairing-token").textContent);
     pairingFeedback.textContent = "Code copié. Colle-le dans le plugin Studio.";
   } catch {
     pairingFeedback.textContent = "Copie impossible : sélectionne le code et copie-le manuellement.";
+  }
+});
+
+document.querySelector("#test-provider").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  button.textContent = "Test en cours…";
+  keyFeedback.textContent = "Envoi d’une courte demande de test au fournisseur.";
+  try {
+    const result = await window.luauCoder.testProviderConnection();
+    keyFeedback.textContent = `Connexion réussie · ${result.provider} · ${result.model}`;
+  } catch (error) {
+    keyFeedback.textContent = `Test impossible : ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Tester la connexion";
   }
 });
 
@@ -200,21 +231,38 @@ function addAssistantMessage(turn, response) {
     const code = document.createElement("pre");
     code.textContent = codeToApply;
     content.append(code);
+    const actions = document.createElement("div");
+    actions.className = "code-actions";
     const applyButton = document.createElement("button");
     applyButton.type = "button";
     applyButton.className = "apply-code";
-    applyButton.textContent = "Envoyer ce code au plugin Studio";
+    applyButton.textContent = "Préparer dans Studio";
     applyButton.addEventListener("click", async () => {
       applyButton.disabled = true;
       try {
         const result = await window.luauCoder.applyCode(codeToApply);
-        applyButton.textContent = `Envoyé à Studio · ${result.targetName}`;
+        applyButton.textContent = `À confirmer dans Studio · ${result.targetName}`;
       } catch (error) {
         applyButton.disabled = false;
         showToast(turn, error.message);
       }
     });
-    content.append(applyButton);
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className = "copy-code";
+    copyButton.textContent = "Copier le code";
+    copyButton.addEventListener("click", async () => {
+      copyButton.disabled = true;
+      try {
+        await window.luauCoder.copyText(codeToApply);
+        copyButton.textContent = "Code copié";
+      } catch (error) {
+        copyButton.disabled = false;
+        showToast(turn, error.message);
+      }
+    });
+    actions.append(applyButton, copyButton);
+    content.append(actions);
     cursor = codePattern.lastIndex;
   }
   appendPlainText(content, response.content.slice(cursor));
@@ -258,9 +306,13 @@ async function submitPrompt(prompt) {
   conversation.scrollTop = conversation.scrollHeight;
 
   try {
-    const response = await window.luauCoder.sendMessage(text);
+    const requestMessages = [...conversationHistory, { role: "user", content: text }].slice(-20);
+    if (requestMessages[0]?.role === "assistant") requestMessages.shift();
+    const response = await window.luauCoder.sendMessage(requestMessages);
     loading.remove();
     addAssistantMessage(turn, response);
+    conversationHistory = [...requestMessages, { role: "assistant", content: response.content }].slice(-20);
+    if (conversationHistory[0]?.role === "assistant") conversationHistory.shift();
   } catch (error) {
     loading.remove();
     showToast(turn, error.message);
@@ -292,6 +344,7 @@ document.querySelectorAll(".prompt-suggestions button").forEach((button) => {
 document.querySelector("#new-chat").addEventListener("click", () => {
   conversation.replaceChildren(welcome);
   welcome.hidden = false;
+  conversationHistory = [];
   promptInput.focus();
 });
 
