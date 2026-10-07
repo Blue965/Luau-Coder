@@ -21,4 +21,8 @@ Run `npm run dist`. The NSIS installer is written to `dist/Luau-Coder-Setup-0.1.
 
 ## Website
 
-Open `index.html` directly or serve this folder with any static web server. The site pages are `index.html`, `features.html`, `plugin.html`, and `download.html`; Vercel's `cleanUrls` configuration exposes them at `/`, `/features`, `/plugin`, and `/download`.
+Deploy the project on Vercel to use the clean `/`, `/features`, `/plugin`, and `/download` routes. The static source pages are `index.html`, `features.html`, `plugin.html`, and `download.html`; the site navigation uses those Vercel clean URLs.
+
+## Checks
+
+Run `npm run check` to check JavaScript syntax and run the provider API tests.
